@@ -2,7 +2,7 @@
 CREATE DATABASE seat_booking;
 USE seat_booking;
 
--- Step 2: Create Seats Table
+
 CREATE TABLE seats (
     id INT AUTO_INCREMENT PRIMARY KEY,
     seat_number INT,
@@ -16,7 +16,7 @@ CREATE TABLE seats (
     target_exam VARCHAR(100)
 );
 
--- Step 3: Create Inquiries Table
+
 CREATE TABLE inquiries (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100),
@@ -27,7 +27,7 @@ CREATE TABLE inquiries (
     inquiry_date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Step 4: Insert 60 seats for Rajkot (seat_number = 1 to 60)
+
 INSERT INTO seats (seat_number, library_name)
 SELECT n, 'Rajkot'
 FROM (
@@ -42,7 +42,7 @@ FROM (
 ) AS numbers
 WHERE n <= 60;
 
--- Step 5: Insert 60 seats for Morbi (seat_number = 1 to 60)
+
 INSERT INTO seats (seat_number, library_name)
 SELECT n, 'Morbi'
 FROM (
@@ -57,14 +57,14 @@ FROM (
 ) AS numbers
 WHERE n <= 60;
 
--- Step 6: Set 5–10 premium seats randomly in Rajkot
+
 UPDATE seats
 SET is_premium = 1
 WHERE library_name = 'Rajkot'
 ORDER BY RAND()
 LIMIT 8;
 
--- Step 7: Set 5–10 premium seats randomly in Morbi
+
 UPDATE seats
 SET is_premium = 1
 WHERE library_name = 'Morbi'
