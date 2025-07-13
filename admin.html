@@ -629,7 +629,7 @@
         </div>
        <div class="popup-field">
   <label>End Date:</label>
-  <input type="text" id="seatEndDate" disabled> <!-- Changed from date to text -->
+  <input type="text" id="seatEndDate" disabled>
   <button class="edit-btn" onclick="enableEdit('seatEndDate')">
     <i class="fas fa-pen"></i>
   </button>
@@ -662,36 +662,34 @@ let rajkotSeats = [];
 let morbiSeats = [];
 let currentLibrary = 'rajkot';
 
-// DOM Elements
 const rajkotSection = document.getElementById('rajkotSection');
 const morbiSection = document.getElementById('morbiSection');
 const rajkotSeatMap = document.getElementById('rajkotSeatMap');
 const morbiSeatMap = document.getElementById('morbiSeatMap');
 const seatDetailPopup = document.getElementById('seatDetailPopup');
 
-// Initialize the admin page
 async function initAdminPage(){
-  // Fetch seats for both libraries
+ 
   await fetchSeats('rajkot', rajkotSeats);
   await fetchSeats('morbi', morbiSeats);
   
-  // Render both seat maps
+  
   renderSeats('rajkotSeatMap', rajkotSeats);
   renderSeats('morbiSeatMap', morbiSeats);
   
-  // Update statistics
+ 
   updateStats('rajkot');
   updateStats('morbi');
 }
 
-// Fetch seats from backend
-// In fetchSeats function:
+
+
 async function fetchSeats(library, targetArray) {
   try {
     const response = await fetch(`/api/admin/seats/${library}`);
     const data = await response.json();
     
-    // Transform data to match our structure
+  
     targetArray.splice(0, targetArray.length, ...data.map(seat => ({
       id: seat.id,
       number: seat.number,
@@ -701,7 +699,7 @@ async function fetchSeats(library, targetArray) {
       phone: seat.phone || '',
       email: seat.email || '',
       exam: seat.exam || '',
-      // Extract just the date portion from ISO string
+    
       endDate: seat.endDate ? seat.endDate.split('T')[0] : '',
       selected: false
     })));
@@ -712,7 +710,7 @@ async function fetchSeats(library, targetArray) {
   }
 }
 
-// Render seats in the UI
+
 function renderSeats(mapId, seats) {
   const container = document.getElementById(mapId);
   container.innerHTML = '';
@@ -721,13 +719,13 @@ function renderSeats(mapId, seats) {
     const seatEl = document.createElement('div');
     seatEl.className = 'seat-box';
     
-    // Apply classes based on status
+   
     if (seat.premium) seatEl.classList.add('premium');
     if (seat.booked) seatEl.classList.add('booked');
     if (seat.selected) seatEl.classList.add('selected');
     
-    // Different icons for different seat types
-    let iconClass = 'fa-chair'; // Default
+    
+    let iconClass = 'fa-chair'; 
     if (seat.premium) iconClass = 'fa-crown';
     if (seat.booked) iconClass = 'fa-user-tie';
     
@@ -736,12 +734,12 @@ function renderSeats(mapId, seats) {
       <span class="seat-number">${seat.number}</span>
     `;
     
-    // Add click handler for booked seats
+   
     if (seat.booked) {
       seatEl.addEventListener('click', () => showPopup(seat));
     } else {
       seatEl.addEventListener('click', () => {
-        // Toggle selection for available seats
+      
         seat.selected = !seat.selected;
         renderSeats(mapId, seats);
       });
@@ -751,7 +749,7 @@ function renderSeats(mapId, seats) {
   });
 }
 
-// Update statistics display
+
 async function updateStats(library) {
   try {
     const response = await fetch(`/api/admin/stats/${library}`);
@@ -766,7 +764,7 @@ async function updateStats(library) {
   }
 }
 
-// Toggle between libraries
+
 function toggleCenter(center) {
   if (center === 'rajkot') {
     rajkotSection.style.display = 'block';
@@ -776,42 +774,40 @@ function toggleCenter(center) {
     morbiSection.style.display = 'block';
   }
   
-  // Update active button
   document.getElementById('rajkotBtn')?.classList.toggle('active', center === 'rajkot');
   document.getElementById('morbiBtn')?.classList.toggle('active', center === 'morbi');
   
   currentLibrary = center;
 }
 
-// Show seat details popup
-// Show seat details popup
+
 function showPopup(seat) {
   seatDetailPopup.classList.add('active');
   
-  // Populate form with seat details
+  
   document.getElementById('popupSeatNumber').textContent = '#' + seat.number;
   document.getElementById('seatUserName').value = seat.name || '';
   
-  // Display date as stored in database (YYYY-MM-DD)
+
   document.getElementById('seatEndDate').value = seat.endDate || '';
   
   document.getElementById('seatPhone').value = seat.phone || '';
   document.getElementById('seatEmail').value = seat.email || '';
   document.getElementById('seatType').value = seat.premium ? 'premium' : 'standard';
   
-  // Store current seat reference
+ 
   window.currentSeat = seat;
 }
 
-// Save changes to database
+
 async function saveChanges() {
   const seat = window.currentSeat;
   const formData = {
     name: document.getElementById('seatUserName').value,
-    endDate: document.getElementById('seatEndDate').value, // Keep as YYYY-MM-DD
+    endDate: document.getElementById('seatEndDate').value, 
     phone: document.getElementById('seatPhone').value,
     email: document.getElementById('seatEmail').value,
-    exam: '', // Not in form, but we can add if needed
+    exam: '', 
     premium: document.getElementById('seatType').value === 'premium'
   };
 
@@ -825,10 +821,9 @@ async function saveChanges() {
     const result = await response.json();
     
     if (result.success) {
-      // Update local data
+     
       Object.assign(seat, formData);
-      
-      // Refresh display
+     
       renderSeats('rajkotSeatMap', rajkotSeats);
       renderSeats('morbiSeatMap', morbiSeats);
       
@@ -843,12 +838,12 @@ async function saveChanges() {
   }
 }
 
-// Enable field editing
+
 function enableEdit(fieldId) {
   const input = document.getElementById(fieldId);
   input.disabled = false;
   
-  // Special handling for seat type
+ 
   if (fieldId === 'seatType') {
     input.innerHTML = `
       <option value="standard">Standard</option>
@@ -860,7 +855,7 @@ function enableEdit(fieldId) {
   input.focus();
 }
 
-// Save changes to database
+
 async function saveChanges() {
   const seat = window.currentSeat;
   const formData = {
@@ -869,7 +864,7 @@ async function saveChanges() {
     
     phone: document.getElementById('seatPhone').value,
     email: document.getElementById('seatEmail').value,
-    exam: '', // Not in form, but we can add if needed
+    exam: '', 
     premium: document.getElementById('seatType').value === 'premium'
   };
 
@@ -884,11 +879,11 @@ async function saveChanges() {
     const result = await response.json();
     
     if (result.success) {
-      // Update local data
+    
       
       Object.assign(seat, formData);
       
-      // Refresh display
+    
       renderSeats('rajkotSeatMap', rajkotSeats);
       renderSeats('morbiSeatMap', morbiSeats);
       
@@ -903,163 +898,30 @@ async function saveChanges() {
   }
 }
 
-// Close the popup
+
 function closePopup() {
   seatDetailPopup.classList.remove('active');
-  
-  // Reset and disable all inputs
+ 
   document.querySelectorAll('.popup-field input').forEach(input => {
     input.disabled = true;
   });
   
-  // Reset seat type to select
+
   const seatTypeInput = document.getElementById('seatType');
   seatTypeInput.innerHTML = '<option value="standard">Standard</option><option value="premium">Premium</option>';
 }
 
-// Initialize when page loads
+
 document.addEventListener('DOMContentLoaded', initAdminPage);  
+setInterval(initAdminPage, 60000);
 
 </script>
-  <!-- <script>
-    // Enhanced seat data with more realistic information
-    const rajkotSeats = Array.from({ length: 60 }, (_, i) => ({
-      id: i + 1,
-      type: Math.random() < 0.2 ? 'premium' : 'standard',
-      booked: Math.random() < 0.4,
-      name: `User ${i + 1}`,
-      number: `98${Math.floor(10000000 + Math.random() * 89999999)}`,
-      email: `user${i + 1}@example.com`,
-      endDate: `2025-0${Math.floor(7 + Math.random() * 3)}-${Math.floor(1 + Math.random() * 28)}`,
-      selected: false
-    }));
+ 
+  
 
-    const morbiSeats = Array.from({ length: 60 }, (_, i) => ({
-      id: i + 1,
-      type: Math.random() < 0.25 ? 'premium' : 'standard',
-      booked: Math.random() < 0.5,
-      name: `User ${i + 1}`,
-      number: `97${Math.floor(10000000 + Math.random() * 89999999)}`,
-      email: `user${i + 1}@example.com`,
-      endDate: `2025-0${Math.floor(7 + Math.random() * 3)}-${Math.floor(1 + Math.random() * 28)}`,
-      selected: false
-    }));
+                                         <!-- Inquiry Management Section -->
 
-    function renderSeats(mapId, seats) {
-      const container = document.getElementById(mapId);
-      container.innerHTML = '';
-      
-      // Update stats
-      updateStats(mapId, seats);
-      
-      seats.forEach(s => {
-        const seat = document.createElement('div');
-        seat.className = 'seat-box';
-        if (s.type === 'premium') seat.classList.add('premium');
-        if (s.booked) seat.classList.add('booked');
-        if (s.selected) seat.classList.add('selected');
-        
-        // Different icons for different seat types
-        let iconClass = 'fa-chair'; // Default
-        if (s.type === 'premium') iconClass = 'fa-crown';
-        if (s.booked) iconClass = 'fa-user-tie';
-        
-        seat.innerHTML = `
-          <i class="fas ${iconClass} seat-icon"></i>
-          <span class="seat-number">${s.id}</span>
-        `;
-        
-        seat.addEventListener('click', () => {
-          if (s.booked) {
-            showPopup(s);
-          } else {
-            // Toggle selection
-            s.selected = !s.selected;
-            renderSeats(mapId, seats);
-          }
-        });
-        
-        container.appendChild(seat);
-      });
-    }
 
-    function updateStats(mapId, seats) {
-      const prefix = mapId === 'rajkotSeatMap' ? 'rajkot' : 'morbi';
-      
-      const total = seats.length;
-      const available = seats.filter(s => !s.booked).length;
-      const booked = seats.filter(s => s.booked).length;
-      const premium = seats.filter(s => s.type === 'premium').length;
-      
-      document.getElementById(`${prefix}Total`).textContent = total;
-      document.getElementById(`${prefix}Available`).textContent = available;
-      document.getElementById(`${prefix}Booked`).textContent = booked;
-      document.getElementById(`${prefix}Premium`).textContent = premium;
-    }
-
-    function toggleCenter(center) {
-      document.getElementById('rajkotSection').style.display = center === 'rajkot' ? 'block' : 'none';
-      document.getElementById('morbiSection').style.display = center === 'morbi' ? 'block' : 'none';
-      
-      // Update active button
-      document.getElementById('rajkotBtn').classList.toggle('active', center === 'rajkot');
-      document.getElementById('morbiBtn').classList.toggle('active', center === 'morbi');
-    }
-
-    function showPopup(s) {
-      document.getElementById('seatDetailPopup').classList.add('active');
-      document.getElementById('popupSeatNumber').textContent = '#' + s.id;
-      document.getElementById('seatUserName').value = s.name;
-      document.getElementById('seatEndDate').value = s.endDate;
-      document.getElementById('seatPhone').value = s.number;
-      document.getElementById('seatEmail').value = s.email;
-      document.getElementById('seatType').value = s.type;
-      window.currentSeat = s;
-      window.currentMap = s.id <= 60 ? 'rajkotSeatMap' : 'morbiSeatMap';
-    }
-
-    function enableEdit(fieldId) {
-      document.getElementById(fieldId).disabled = false;
-      document.getElementById(fieldId).focus();
-    }
-
-    function saveChanges() {
-      const s = window.currentSeat;
-      s.name = document.getElementById('seatUserName').value;
-      s.endDate = document.getElementById('seatEndDate').value;
-      s.number = document.getElementById('seatPhone').value;
-      s.email = document.getElementById('seatEmail').value;
-      s.type = document.getElementById('seatType').value;
-      closePopup();
-      renderSeats('rajkotSeatMap', rajkotSeats);
-      renderSeats('morbiSeatMap', morbiSeats);
-    }
-
-    function closePopup() {
-      document.getElementById('seatDetailPopup').classList.remove('active');
-      // Disable all inputs when closing
-      document.querySelectorAll('.popup-field input').forEach(input => {
-        input.disabled = true;
-      });
-    }
-
-    // Initial load
-    document.addEventListener('DOMContentLoaded', () => {
-      renderSeats('rajkotSeatMap', rajkotSeats);
-      renderSeats('morbiSeatMap', morbiSeats);
-      
-      // Add some premium seats with crown icons
-      setTimeout(() => {
-        const premiumSeats = document.querySelectorAll('.seat-box.premium .seat-icon');
-        premiumSeats.forEach(icon => {
-          icon.classList.remove('fa-chair');
-          icon.classList.add('fa-crown');
-        });
-      }, 100);
-    });
-  </script> -->
-
-  <!-- Inquiry Management Section -->
   <section class="inquiry-dashboard">
     <div class="dashboard-header">
       <h2><i class="fas fa-inbox"></i> Inquiry Management</h2>
@@ -1072,7 +934,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             <option value="type">Inquiry Type</option>
           </select>
         </div>
-        <div class="stats">
+        <div class="s tats">
           <span class="stat-badge new"><i class="fas fa-bolt"></i> <span id="newCount">0</span> New</span>
           <span class="stat-badge total"><i class="fas fa-inbox"></i> <span id="totalCount">0</span> Total</span>
         </div>
@@ -1080,9 +942,10 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
     </div>
     <div class="inquiry-grid" id="inquiryContainer"></div>
   </section>
+
 <style>
 
-/* Inquiry Dashboard Styles */
+
 .inquiry-dashboard {
   background: #f8f9fa;
   border-radius: 12px;
@@ -1186,7 +1049,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
   height: 4px;
 }
 
-/* Color coding by type */
+
 .inquiry-card.daily { border-left-color: #0d6efd; }
 .inquiry-card.monthly { border-left-color: #198754; }
 .inquiry-card.quarterly { border-left-color: #991ca4; }
@@ -1294,7 +1157,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
   color: white;
 }
 
-/* Empty state */
+
 .empty-state {
   grid-column: 1 / -1;
   text-align: center;
@@ -1308,7 +1171,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
   opacity: 0.3;
 }
 
-/* Animation for new inquiries */
+
 @keyframes pulseGlow {
   0% { box-shadow: 0 0 0 0 rgba(13, 110, 253, 0.4); }
   70% { box-shadow: 0 0 0 10px rgba(13, 110, 253, 0); }
@@ -1473,13 +1336,22 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
   setInterval(fetchInquiries, 60000);
 </script>
 
-<!--///////////////////////// Transaction management /////////////////////////////// -->
+
+
+
+
+                    <!--///////////////////////// Transaction management /////////////////////////////// -->
+
+
+
 
     <title>Admin Dashboard - Transaction Management</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
-    <style>
-        :root {
+ 
+<style>
+       
+       :root {
             --primary: #3498db;
             --success: #27ae60;
             --danger: #e74c3c;
@@ -2048,12 +1920,11 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
     </div>
 
     <script>
-        // API endpoints
+        
         const API_URL = 'http://localhost:3000';
         const TRANSACTIONS_API = `${API_URL}/api/transactions`;
         const ADD_EXPENSE_API = `${API_URL}/api/expenses`;
-        
-        // DOM elements
+       
         const transactionsList = document.getElementById('transactionsList');
         const emptyState = document.getElementById('emptyState');
         const addExpenseBtn = document.getElementById('addExpenseBtn');
@@ -2061,7 +1932,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
         const exportBtn = document.getElementById('exportBtn');
         const notification = document.getElementById('notification');
         
-        // Function to show notification
+       
         function showNotification(message, isSuccess = true) {
             notification.textContent = message;
             notification.className = `notification ${isSuccess ? 'success' : 'error'} show`;
@@ -2071,17 +1942,17 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             }, 3000);
         }
         
-        // Function to format date
+     
         function formatDate(dateString) {
             const options = { day: '2-digit', month: 'short', year: 'numeric' };
             return new Date(dateString).toLocaleDateString('en-IN', options);
         }
         
-        // Function to group transactions by month and sort them
+        
         function groupTransactionsByMonth(transactions) {
             const grouped = {};
             
-            // Sort all transactions by date descending
+         
             transactions.sort((a, b) => 
                 new Date(b.transaction_date) - new Date(a.transaction_date)
             );
@@ -2100,7 +1971,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             return grouped;
         }
         
-        // Function to calculate monthly summary
+       
         function calculateMonthlySummary(transactions) {
             let income = 0;
             let expenses = 0;
@@ -2120,7 +1991,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             };
         }
         
-        // Function to calculate yearly summary
+       
         function calculateYearlySummary(transactions) {
             let income = 0;
             let expenses = 0;
@@ -2140,7 +2011,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             };
         }
         
-        // Function to render transaction card
+       
         function renderTransactionCard(transaction) {
             const isExpense = transaction.seat_number === 89;
             const cardClass = isExpense ? 'expense-card' : 'income-card';
@@ -2180,7 +2051,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             `;
         }
         
-        // Function to render monthly summary card
+       
         function renderMonthlySummary(monthYear, summary) {
             const netClass = summary.net >= 0 ? 'income-summary' : 'expense-summary';
             
@@ -2210,9 +2081,7 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             `;
         }
         
-        // Function to render yearly summary
-        
-        // Function to fetch transactions from API
+      
         async function fetchTransactions() {
             transactionsList.innerHTML = `
                 <div class="loader">
@@ -2244,18 +2113,17 @@ document.addEventListener('DOMContentLoaded', initAdminPage);
             }
         }
         
-        // Main function to render all transactions
- // Main function to render all transactions
+      
 function renderTransactions(transactions) {
     transactionsList.innerHTML = '';
     
-    // If there are no transactions, show empty state
+ 
     if (transactions.length === 0) {
         emptyState.style.display = 'block';
         return;
     }
     
-    // Group transactions by year
+ 
     const groupedByYear = {};
     transactions.forEach(transaction => {
         const date = new Date(transaction.transaction_date);
@@ -2268,23 +2136,22 @@ function renderTransactions(transactions) {
         groupedByYear[year].push(transaction);
     });
     
-    // Get years in descending order
+    
     const years = Object.keys(groupedByYear).sort((a, b) => b - a);
     
-    // Render each year's section
+  
     years.forEach(year => {
         const yearTransactions = groupedByYear[year];
         
-        // Yearly summary for this specific year
+    
         const yearlySummary = calculateYearlySummary(yearTransactions);
         
-        // Start building monthly content for this year
+      
         let monthlyContent = '';
         
-        // Group transactions by month within this year
         const grouped = groupTransactionsByMonth(yearTransactions);
         
-        // Get months in descending order
+       
         const sortedMonths = Object.keys(grouped).sort((a, b) => {
             return new Date(b) - new Date(a);
         });
@@ -2292,7 +2159,7 @@ function renderTransactions(transactions) {
         sortedMonths.forEach(monthYear => {
             const monthTransactions = grouped[monthYear];
             
-            // Monthly separator
+          
             monthlyContent += `
                 <div class="month-separator">
                     <i class="fas fa-calendar-alt"></i>
@@ -2300,17 +2167,17 @@ function renderTransactions(transactions) {
                 </div>
             `;
             
-            // Monthly summary card
+         
             const monthlySummary = calculateMonthlySummary(monthTransactions);
             monthlyContent += renderMonthlySummary(monthYear, monthlySummary);
             
-            // Transactions for the month
+            
             monthTransactions.forEach(transaction => {
                 monthlyContent += renderTransactionCard(transaction);
             });
         });
         
-        // Add the year section with its content
+       
         transactionsList.innerHTML += `
             <div class="year-section">
                 ${renderYearlySummary(year, yearlySummary)}
@@ -2320,7 +2187,7 @@ function renderTransactions(transactions) {
     });
 }
 
-// Updated function to render yearly summary for a specific year
+
 function renderYearlySummary(year, summary) {
     const netClass = summary.net >= 0 ? 'income-summary' : 'expense-summary';
     
@@ -2350,7 +2217,7 @@ function renderYearlySummary(year, summary) {
     `;
 }
         
-        // Function to add new expense
+     
         async function addExpense() {
             const description = document.getElementById('description').value.trim();
             const amount = document.getElementById('amount').value;
@@ -2382,15 +2249,14 @@ function renderYearlySummary(year, summary) {
                 
                 const result = await response.json();
                 
-                // Reset form
+               
                 document.getElementById('description').value = '';
                 document.getElementById('amount').value = '';
                 document.getElementById('date').value = new Date().toISOString().split('T')[0];
                 document.getElementById('library').value = '';
                 
                 showNotification('Expense added successfully!');
-                
-                // Refresh transactions
+              
                 fetchTransactions();
             } catch (error) {
                 console.error('Error adding expense:', error);
@@ -2398,20 +2264,19 @@ function renderYearlySummary(year, summary) {
             }
         }
         
-        // Initialize the page
+        
         document.addEventListener('DOMContentLoaded', () => {
-            // Set today's date as default for expense form
+          
             const today = new Date().toISOString().split('T')[0];
             document.getElementById('date').value = today;
             
-            // Fetch transactions
+           
             fetchTransactions();
             
-            // Add event listeners
             addExpenseBtn.addEventListener('click', addExpense);
             refreshBtn.addEventListener('click', fetchTransactions);
             
-            // Export button functionality
+          
             exportBtn.addEventListener('click', () => {
                 showNotification('Export feature will be implemented soon');
             });

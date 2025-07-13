@@ -9,7 +9,7 @@ const fs = require('fs');
 const app = express();
 const port = 3000;
 
-// Middlewarenode server.js
+
 app.use(cors());
 app.use(bodyParser.json());
 app.use((req, res, next) => {
@@ -18,7 +18,7 @@ app.use((req, res, next) => {
 });
 app.use(express.static(path.join(__dirname, 'public')));
 
-// MySQL Connection
+
 const db = mysql.createConnection({
   host: 'localhost',
   user: 'root',
@@ -34,7 +34,7 @@ db.connect((err) => {
   console.log('✅ Connected to MySQL database');
 });
 
-// Routes
+
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'home.html'));
 });
@@ -42,7 +42,7 @@ app.get('/', (req, res) => {
 app.get('/home', (req, res) => res.redirect('/'));
 app.get('/admin', (req, res) => res.sendFile(path.join(__dirname, 'public', 'admin.html')));
 
-// Inquiry Submission
+
 app.post('/submit-inquiry', (req, res) => {
   const { name, phone_number, email, interested_in, message } = req.body;
 
@@ -66,9 +66,9 @@ app.post('/submit-inquiry', (req, res) => {
   });
 });
 
-// API Endpoints
+
 app.get('/api/inquiries', (req, res) => {
-  // Delete old inquiries (>7 days)
+  
   const deleteOldQuery = 'DELETE FROM inquiries WHERE inquiry_date < NOW() - INTERVAL 7 DAY';
   
   db.query(deleteOldQuery, (deleteErr, deleteResult) => {
@@ -78,7 +78,7 @@ app.get('/api/inquiries', (req, res) => {
       console.log(`✅ Deleted ${deleteResult.affectedRows} old inquiries`);
     }
 
-    // Fetch current inquiries
+   
     const fetchQuery = `
       SELECT *, 
         TIMESTAMPDIFF(HOUR, inquiry_date, NOW()) AS hours_ago,
@@ -127,12 +127,12 @@ app.delete('/api/inquiries/:id', (req, res) => {
   });
 });
 
-////////////////////////////////////////////seat booking /////////////////////////////////
+////////////////////////////////////////////>>  seat booking  << //////////////////////////////////////////////////////////////////
 
 app.use(cors());
 app.use(bodyParser.json());
 
-// Schedule daily seat cleanup at midnight
+
 cron.schedule('0 0 * * *', () => {
   const query = "UPDATE seats SET is_booked = 0, student_name = NULL, phone_number = NULL, email = NULL, target_exam = NULL, end_date = NULL WHERE end_date < CURDATE()";
   db.query(query, (err) => {
@@ -141,7 +141,7 @@ cron.schedule('0 0 * * *', () => {
   });
 });
 
-// Get seats for a library
+
 app.get('/api/seats/:library', (req, res) => {
   const library = req.params.library;
   const query = `SELECT * FROM seats WHERE library_name = ?`;
@@ -163,12 +163,12 @@ app.get('/api/seats/:library', (req, res) => {
 });
 
 // Book a seat
-// Book a seat
+
 app.post('/api/book', (req, res) => {
   const { seatId, library, duration, userDetails, adminPassword } = req.body;
   const { fullName, phoneNumber, email, exam } = userDetails;
 
-  // Verify admin password
+ 
   if (adminPassword !== "7864") {
     return res.status(401).json({ 
       success: false, 
@@ -176,11 +176,11 @@ app.post('/api/book', (req, res) => {
     });
   }
 
-  // Start transaction
+ 
   db.beginTransaction(err => {
     if (err) return res.status(500).send(err);
 
-    // Step 1: Check if the seat exists and get premium status
+  
     const checkPremiumQuery = 'SELECT is_premium FROM seats WHERE id = ? AND library_name = ?';
     db.query(checkPremiumQuery, [seatId, library], (err, results) => {
       if (err) return db.rollback(() => res.status(500).send(err));
@@ -194,17 +194,17 @@ app.post('/api/book', (req, res) => {
 
       const isActuallyPremium = results[0].is_premium;
       
-      // Calculate end date
+  
       const endDate = new Date();
       endDate.setMonth(endDate.getMonth() + parseInt(duration));
       
-      // Calculate amount based on premium status
+    
       const basePrice = 1000 * duration;
       const premiumFee = isActuallyPremium ? (100 * duration) : 0;
       const discount = duration === 3 ? 300 : duration === 6 ? 900 : 0;
       const totalAmount = basePrice + premiumFee - discount;
 
-      // Step 2: Update the seat
+    
       const seatQuery = `UPDATE seats SET 
         is_booked = 1,
         student_name = ?,
@@ -226,7 +226,7 @@ app.post('/api/book', (req, res) => {
             }));
           }
 
-          // Step 3: Record transaction
+    
           const transactionQuery = `INSERT INTO transactions 
             (student_name, phone_number, seat_number, amount, library_name) 
             VALUES (?, ?, ?, ?, ?)`;
@@ -245,10 +245,12 @@ app.post('/api/book', (req, res) => {
     });
   });
 });
-/////////////////////////////admin seat renderrring and editing //////////////////////////////
-// Admin - Get seats for a library
-// Admin - Get seats for a library
-// Admin - Get seats for a library
+
+
+
+/////////////////////////////>> admin seat renderrring and editing <<//////////////////////////////
+
+
 app.get('/api/admin/seats/:library', (req, res) => {
   const library = req.params.library;
   const query = `
@@ -277,7 +279,6 @@ app.get('/api/admin/seats/:library', (req, res) => {
   });
 });
 
-// Admin - Update seat details
 app.put('/api/admin/seats/:id', (req, res) => {
   const seatId = req.params.id;
   const { name, phone, email, exam, endDate, premium } = req.body;
@@ -306,7 +307,7 @@ app.put('/api/admin/seats/:id', (req, res) => {
   });
 });
 
-// Admin - Get seat statistics
+
 app.get('/api/admin/stats/:library', (req, res) => {
   const library = req.params.library;
   const query = `
@@ -324,12 +325,13 @@ app.get('/api/admin/stats/:library', (req, res) => {
     res.json(results[0]);
   });
 });
+
+
 ///////////////////////////////////admin Transaction Manageent /////////////////////////////////
 
-// Add these endpoints to your existing server.js file
-// Add these endpoints to your existing server.js file
 
-// API to get all transactions (sorted by date descending)
+
+
 app.get('/api/transactions', (req, res) => {
   const query = `
     SELECT * 
@@ -347,7 +349,7 @@ app.get('/api/transactions', (req, res) => {
   });
 });
 
-// API to add a new expense
+
 app.post('/api/expenses', (req, res) => {
   const { description, amount, date, library } = req.body;
   
@@ -357,8 +359,8 @@ app.post('/api/expenses', (req, res) => {
   
   const expenseData = {
     student_name: description,
-    phone_number: '9876543210', // Default phone number for expenses
-    seat_number: 89, // Special seat number for expenses
+    phone_number: '9876543210', 
+    seat_number: 89,
     amount: parseFloat(amount),
     library_name: library,
     transaction_date: new Date(date)
@@ -389,7 +391,7 @@ app.post('/api/expenses', (req, res) => {
   });
 });
 
-// Start server
+
 app.listen(port, () => {
   console.log(`🚀 Server running on http://localhost:${port}`);
 });
